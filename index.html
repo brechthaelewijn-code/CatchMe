@@ -88,20 +88,38 @@ button{
 import { initializeApp }
 from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 
+import {
+  getAuth,
+  signInAnonymously
+}
+from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
 const firebaseConfig = {
-apiKey: "AIzaSyA2sV9l5lhg50CaoGefqlWIZN5puEj58s4",
-authDomain: "catchme-8d8d7.firebaseapp.com",
-databaseURL: "https://catchme-8d8d7-default-rtdb.europe-west1.firebasedatabase.app",
-projectId: "catchme-8d8d7",
-storageBucket: "catchme-8d8d7.firebasestorage.app",
-messagingSenderId: "508726599765",
-appId: "1:508726599765:web:b52484675e792f532b74dc"
+  apiKey: "AIzaSyA2sV9l5lhg50CaoGefqlWIZN5puEj58s4",
+  authDomain: "catchme-8d8d7.firebaseapp.com",
+  databaseURL: "https://catchme-8d8d7-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "catchme-8d8d7",
+  storageBucket: "catchme-8d8d7.firebasestorage.app",
+  messagingSenderId: "508726599765",
+  appId: "1:508726599765:web:b52484675e792f532b74dc"
 };
 
 const app = initializeApp(firebaseConfig);
 
-console.log("✅ Firebase Connected");
+const auth = getAuth(app);
 
+signInAnonymously(auth)
+.then(() => {
+
+  console.log("✅ Firebase Connected");
+  console.log("✅ Anonymous Login OK");
+
+})
+.catch((error) => {
+
+  console.error(error);
+
+});
 </script>
 
 <script>
