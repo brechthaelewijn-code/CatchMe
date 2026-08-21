@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>CatchMe</title>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+html,body{
+  margin:0;
+  padding:0;
+  height:100%;
+  font-family:Arial,sans-serif;
+}
+
+#header{
+  background:#111827;
+  color:white;
+  padding:10px;
+}
+
+#map{
+  height:75vh;
+}
+
+#controls{
+  padding:10px;
+}
+
+button{
+  padding:10px;
+  margin:5px;
+  cursor:pointer;
+}
+
+.info{
+  background:#f3f4f6;
+  padding:10px;
+  border-radius:8px;
+  margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="header">
+  <h2>CatchMe MVP</h2>
+</div>
+
+<div id="map"></div>
+
+<div id="controls">
+
+  <button onclick="startGPS()">
+    Start My GPS
+  </button>
+
+  <input
+    type="file"
+    id="gpxFile"
+    accept=".gpx"
+  >
+
+  <div class="info">
+    <b>Status:</b>
+    <span id="status">Not started</span>
+  </div>
+
+  <div class="info">
+    <b>Latitude:</b>
+    <span id="lat">-</span>
+    <br>
+    <b>Longitude:</b>
+    <span id="lng">-</span>
+  </div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+const map = L.map('map').setView(
+  [50.8503, 4.3517],
+  12
+);
+
+L.tileLayer(
+  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {
+    maxZoom:19
+  }
+).addTo(map);
+
+let myMarker = null;
+let routeLayer = null;
+
+function startGPS(){
+
+  if(!navigator.geolocation){
+    alert("Geolocation not supported");
+    return;
+  }
+
+  document.getElementById("status").innerText =
+    "Waiting for GPS...";
+
+  navigator.geolocation.watchPosition(
+    gpsSuccess,
+    gpsError,
+    {
+      enableHighAccuracy:true,
+      timeout:15000,
+      maximumAge:5000
+    }
+  );
+}
+
+function gpsSuccess(position){
+
+  const lat = position.coords.latitude;
+  const lng = position.coords.longitude;
+
+  document.getElementById("status").innerText =
+    "GPS LIVE";
+
+  document.getElementById("lat").innerText =
+    lat.toFixed(6);
+
+  document.getElementById("lng").innerText =
+    lng.toFixed(6);
+
+  if(myMarker){
+
+    myMarker.setLatLng([lat,lng]);
+
+  } else {
+
+    myMarker = L.circleMarker(
+      [lat,lng],
+      {
+        radius:10,
+        color:"blue",
+        fillColor:"blue",
+        fillOpacity:1
+      }
+    ).addTo(map);
+
+    myMarker.bindPopup("You");
+
+  }
+
+  map.setView([lat,lng],15);
+
+}
+
+function gpsError(err){
+
+document.getElementById("status").innerText =
+"GPS ERROR " + err.code + " : " + err.message;
+
+console.log(err);
+
+}
+
+document
+.getElementById("gpxFile")
+.addEventListener(
+  "change",
+  function(event){
+
+    const file = event.target.files[0];
+
+    if(!file)
+      return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(){
+
+      const parser =
+        new DOMParser();
+
+      const xml =
+        parser.parseFromString(
+          reader.result,
+          "text/xml"
+        );
+
+      const pts =
+        xml.getElementsByTagName("trkpt");
+
+      const route = [];
+
+      for(let i=0;i<pts.length;i++){
+
+        route.push([
+          parseFloat(
+            pts[i].getAttribute("lat")
+          ),
+          parseFloat(
+            pts[i].getAttribute("lon")
+          )
+        ]);
+      }
+
+      if(route.length < 2){
+        alert("No route found");
+        return;
+      }
+
+      if(routeLayer){
+        map.removeLayer(routeLayer);
+      }
+
+      routeLayer =
+        L.polyline(
+          route,
+          {
+            color:"purple",
+            weight:5
+          }
+        ).addTo(map);
+
+      map.fitBounds(
+        routeLayer.getBounds()
+      );
+
+    };
+
+    reader.readAsText(file);
+
+  });
+
+</script>
+
+</body>
+</html>
