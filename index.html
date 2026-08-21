@@ -4,7 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>CatchMe</title>
+<title>CatchMe v0.2</title>
+<h1 style="color:red">
+GITHUB VERSION
+</h1>
 
 <link rel="stylesheet"
 href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -88,20 +91,42 @@ button{
 import { initializeApp }
 from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 
+import {
+  getAuth,
+  signInAnonymously
+}
+from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
 const firebaseConfig = {
-apiKey: "AIzaSyA2sV9l5lhg50CaoGefqlWIZN5puEj58s4",
-authDomain: "catchme-8d8d7.firebaseapp.com",
-databaseURL: "https://catchme-8d8d7-default-rtdb.europe-west1.firebasedatabase.app",
-projectId: "catchme-8d8d7",
-storageBucket: "catchme-8d8d7.firebasestorage.app",
-messagingSenderId: "508726599765",
-appId: "1:508726599765:web:b52484675e792f532b74dc"
+  apiKey: "AIzaSyA2sV9l5lhg50CaoGefqlWIZN5puEj58s4",
+  authDomain: "catchme-8d8d7.firebaseapp.com",
+  databaseURL: "https://catchme-8d8d7-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "catchme-8d8d7",
+  storageBucket: "catchme-8d8d7.firebasestorage.app",
+  messagingSenderId: "508726599765",
+  appId: "1:508726599765:web:b52484675e792f532b74dc"
 };
 
 const app = initializeApp(firebaseConfig);
 
-console.log("✅ Firebase Connected");
+const auth = getAuth(app);
 
+console.log("Starting anonymous login...");
+
+signInAnonymously(auth)
+.then((userCredential) => {
+
+  console.log("✅ Anonymous Login OK");
+  console.log(userCredential);
+
+})
+.catch((error) => {
+
+  console.error("AUTH ERROR:");
+  console.error(error.code);
+  console.error(error.message);
+
+});
 </script>
 
 <script>
