@@ -1,83 +1,441 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
 
-<title>CatchMe</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1"
+  >
 
-<link rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <meta name="theme-color" content="#111827">
 
-<style>
-html,body{
-  margin:0;
-  padding:0;
-  height:100%;
-  font-family:Arial,sans-serif;
-}
+  <title>CatchMe</title>
 
-#header{
-  background:#111827;
-  color:white;
-  padding:10px;
-}
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  >
 
-#map{
-  height:75vh;
-}
+  <style>
+    :root {
+      --dark: #111827;
+      --blue: #2563eb;
+      --red: #ef4444;
+      --purple: #7c3aed;
+      --green: #16a34a;
+      --light: #f3f4f6;
+      --border: #d1d5db;
+    }
 
-#controls{
-  padding:10px;
-}
+    * {
+      box-sizing: border-box;
+    }
 
-button{
-  padding:10px;
-  margin:5px;
-  cursor:pointer;
-}
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--light);
+      color: #111827;
+    }
 
-.info{
-  background:#f3f4f6;
-  padding:10px;
-  border-radius:8px;
-  margin-top:10px;
-}
-</style>
+    header {
+      background: var(--dark);
+      color: white;
+      padding: 18px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 25px;
+    }
+
+    header p {
+      margin: 5px 0 0;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    .container {
+      max-width: 760px;
+      margin: auto;
+      padding: 12px;
+    }
+
+    #map {
+      width: 100%;
+      height: 52vh;
+      min-height: 390px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+    }
+
+    .panel {
+      margin-top: 12px;
+      padding: 14px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    .panel-title {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 12px;
+      font-weight: bold;
+      color: #4b5563;
+    }
+
+    select,
+    input[type="text"] {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: white;
+      font-size: 16px;
+      text-transform: uppercase;
+    }
+
+    button,
+    .file-button {
+      min-height: 46px;
+      padding: 11px 14px;
+      border: 0;
+      border-radius: 11px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .primary {
+      color: white;
+      background: var(--blue);
+    }
+
+    .athlete-button {
+      color: white;
+      background: var(--red);
+    }
+
+    .secondary {
+      color: white;
+      background: var(--dark);
+    }
+
+    .outline {
+      background: white;
+      color: #111827;
+      border: 1px solid var(--border);
+    }
+
+    .file-button {
+      display: block;
+      background: var(--purple);
+      color: white;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    #gpxFile {
+      display: none;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 14px;
+    }
+
+    .status-row:last-child {
+      border-bottom: none;
+    }
+
+    .status-value {
+      text-align: right;
+      font-weight: bold;
+    }
+
+    .live {
+      color: var(--green);
+    }
+
+    .waiting {
+      color: #d97706;
+    }
+
+    .error {
+      margin-top: 12px;
+      padding: 12px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 10px;
+      color: #991b1b;
+      font-size: 14px;
+      display: none;
+    }
+
+    .success {
+      margin-top: 12px;
+      padding: 12px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      color: #166534;
+      font-size: 14px;
+      display: none;
+    }
+
+    .legend {
+      position: absolute;
+      z-index: 500;
+      top: 12px;
+      left: 12px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+      font-size: 13px;
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 4px 0;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .red-dot {
+      background: var(--red);
+    }
+
+    .blue-dot {
+      background: var(--blue);
+    }
+
+    .map-wrapper {
+      position: relative;
+    }
+
+    .small {
+      margin: 8px 0 0;
+      color: #6b7280;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .session-code {
+      letter-spacing: 3px;
+      font-family: monospace;
+      font-size: 17px;
+    }
+
+    @media (max-width: 560px) {
+      .form-grid,
+      .button-grid {
+        grid-template-columns: 1fr;
+      }
+
+      #map {
+        height: 48vh;
+        min-height: 350px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-<div id="header">
-  <h2>CatchMe MVP</h2>
-</div>
+<header>
+  <h1>CatchMe</h1>
+  <p>Live athlete and follower tracking</p>
+</header>
 
-<div id="map"></div>
+<div class="container">
 
-<div id="controls">
+  <div class="map-wrapper">
+    <div id="map"></div>
 
-  <button onclick="startGPS()">
-    Start My GPS
-  </button>
+    <div class="legend">
+      <div class="legend-row">
+        <span class="legend-dot red-dot"></span>
+        Athlete
+      </div>
 
-  <input
-    type="file"
-    id="gpxFile"
-    accept=".gpx"
-  >
-
-  <div class="info">
-    <b>Status:</b>
-    <span id="status">Not started</span>
+      <div class="legend-row">
+        <span class="legend-dot blue-dot"></span>
+        Follower
+      </div>
+    </div>
   </div>
 
-  <div class="info">
-    <b>Latitude:</b>
-    <span id="lat">-</span>
-    <br>
-    <b>Longitude:</b>
-    <span id="lng">-</span>
+  <div class="panel">
+    <h2 class="panel-title">Session</h2>
+
+    <div class="form-grid">
+      <div>
+        <label for="role">My role</label>
+
+        <select id="role">
+          <option value="follower">Follower</option>
+          <option value="athlete">Athlete</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="sessionId">Session code</label>
+
+        <input
+          id="sessionId"
+          type="text"
+          maxlength="12"
+          placeholder="Example: A7F2K9"
+          autocomplete="off"
+        >
+      </div>
+    </div>
+
+    <div class="button-grid">
+      <button id="createSession" class="secondary">
+        Create session
+      </button>
+
+      <button id="joinSession" class="primary">
+        Join session
+      </button>
+    </div>
+
+    <div class="button-grid">
+      <button id="copyInvite" class="outline" disabled>
+        Copy follower link
+      </button>
+
+      <button id="showBoth" class="outline">
+        Show both
+      </button>
+    </div>
+
+    <p class="small">
+      The athlete creates or joins a session. The follower opens the
+      invitation link or enters the same session code.
+    </p>
   </div>
+
+  <div class="panel">
+    <h2 class="panel-title">Live tracking</h2>
+
+    <div class="button-grid">
+      <button id="startGps" class="primary">
+        Start my GPS
+      </button>
+
+      <label for="gpxFile" class="file-button">
+        Import GPX route
+      </label>
+
+      <input
+        type="file"
+        id="gpxFile"
+        accept=".gpx,application/gpx+xml,application/xml,text/xml"
+      >
+    </div>
+
+    <div class="status-row">
+      <span>Firebase account</span>
+      <span id="authStatus" class="status-value waiting">
+        Connecting
+      </span>
+    </div>
+
+    <div class="status-row">
+      <span>Joined session</span>
+      <span id="sessionStatus" class="status-value">
+        None
+      </span>
+    </div>
+
+    <div class="status-row">
+      <span>My GPS</span>
+      <span id="gpsStatus" class="status-value">
+        Off
+      </span>
+    </div>
+
+    <div class="status-row">
+      <span>GPS accuracy</span>
+      <span id="accuracyStatus" class="status-value">
+        -
+      </span>
+    </div>
+
+    <div class="status-row">
+      <span>Athlete</span>
+      <span id="athleteStatus" class="status-value waiting">
+        Waiting
+      </span>
+    </div>
+
+    <div class="status-row">
+      <span>Follower</span>
+      <span id="followerStatus" class="status-value waiting">
+        Waiting
+      </span>
+    </div>
+
+    <div class="status-row">
+      <span>Distance apart</span>
+      <span id="distanceStatus" class="status-value">
+        Waiting for both
+      </span>
+    </div>
+
+    <div class="status-row">
+      <span>GPX route</span>
+      <span id="routeStatus" class="status-value">
+        No route loaded
+      </span>
+    </div>
+  </div>
+
+  <div id="successBox" class="success"></div>
+  <div id="errorBox" class="error"></div>
 
 </div>
 
@@ -85,200 +443,829 @@ button{
 
 <script type="module">
 
-import { initializeApp }
-from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+  import {
+    initializeApp
+  } from
+    "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 
-import {
-  getAuth,
-  signInAnonymously
-}
-from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+  import {
+    getAuth,
+    signInAnonymously,
+    onAuthStateChanged
+  } from
+    "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA2sV9l5lhg50CaoGefqlWIZN5puEj58s4",
-  authDomain: "catchme-8d8d7.firebaseapp.com",
-  databaseURL: "https://catchme-8d8d7-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "catchme-8d8d7",
-  storageBucket: "catchme-8d8d7.firebasestorage.app",
-  messagingSenderId: "508726599765",
-  appId: "1:508726599765:web:b52484675e792f532b74dc"
-};
+  import {
+    getDatabase,
+    ref,
+    set,
+    onValue,
+    onDisconnect,
+    serverTimestamp
+  } from
+    "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
 
-const app = initializeApp(firebaseConfig);
+  const firebaseConfig = {
+    apiKey: "AIzaSyA2sV9l5lhg50CaoGefqlWIZN5puEj58s4",
+    authDomain: "catchme-8d8d7.firebaseapp.com",
+    databaseURL:
+      "https://catchme-8d8d7-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "catchme-8d8d7",
+    storageBucket: "catchme-8d8d7.firebasestorage.app",
+    messagingSenderId: "508726599765",
+    appId: "1:508726599765:web:b52484675e792f532b74dc"
+  };
 
-const auth = getAuth(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const database = getDatabase(app);
 
-console.log("Starting anonymous login...");
+  const DEFAULT_CENTER = [50.8503, 4.3517];
 
-signInAnonymously(auth)
-.then((userCredential) => {
+  const map = L.map("map").setView(DEFAULT_CENTER, 10);
 
-  console.log("✅ Anonymous Login OK");
-  console.log(userCredential);
-
-})
-.catch((error) => {
-
-  console.error("AUTH ERROR:");
-  console.error(error.code);
-  console.error(error.message);
-
-});
-</script>
-
-<script>
-
-const map = L.map('map').setView(
-  [50.8503, 4.3517],
-  12
-);
-
-L.tileLayer(
-  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  {
-    maxZoom:19
-  }
-).addTo(map);
-
-let myMarker = null;
-let routeLayer = null;
-
-function startGPS(){
-
-  if(!navigator.geolocation){
-    alert("Geolocation not supported");
-    return;
-  }
-
-  document.getElementById("status").innerText =
-    "Waiting for GPS...";
-
-  navigator.geolocation.watchPosition(
-    gpsSuccess,
-    gpsError,
+  L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
-      enableHighAccuracy:true,
-      timeout:15000,
-      maximumAge:5000
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap contributors"
     }
-  );
-}
+  ).addTo(map);
 
-function gpsSuccess(position){
+  const roleElement =
+    document.getElementById("role");
 
-  const lat = position.coords.latitude;
-  const lng = position.coords.longitude;
+  const sessionElement =
+    document.getElementById("sessionId");
 
-  document.getElementById("status").innerText =
-    "GPS LIVE";
+  const createSessionButton =
+    document.getElementById("createSession");
 
-  document.getElementById("lat").innerText =
-    lat.toFixed(6);
+  const joinSessionButton =
+    document.getElementById("joinSession");
 
-  document.getElementById("lng").innerText =
-    lng.toFixed(6);
+  const copyInviteButton =
+    document.getElementById("copyInvite");
 
-  if(myMarker){
+  const showBothButton =
+    document.getElementById("showBoth");
 
-    myMarker.setLatLng([lat,lng]);
+  const startGpsButton =
+    document.getElementById("startGps");
 
-  } else {
+  const gpxFileElement =
+    document.getElementById("gpxFile");
 
-    myMarker = L.circleMarker(
-      [lat,lng],
-      {
-        radius:10,
-        color:"blue",
-        fillColor:"blue",
-        fillOpacity:1
-      }
-    ).addTo(map);
+  const authStatus =
+    document.getElementById("authStatus");
 
-    myMarker.bindPopup("You");
+  const sessionStatus =
+    document.getElementById("sessionStatus");
 
+  const gpsStatus =
+    document.getElementById("gpsStatus");
+
+  const accuracyStatus =
+    document.getElementById("accuracyStatus");
+
+  const athleteStatus =
+    document.getElementById("athleteStatus");
+
+  const followerStatus =
+    document.getElementById("followerStatus");
+
+  const distanceStatus =
+    document.getElementById("distanceStatus");
+
+  const routeStatus =
+    document.getElementById("routeStatus");
+
+  const errorBox =
+    document.getElementById("errorBox");
+
+  const successBox =
+    document.getElementById("successBox");
+
+  let currentUser = null;
+  let currentSession = "";
+  let watchId = null;
+  let participantListener = null;
+
+  let athletePosition = null;
+  let followerPosition = null;
+
+  let athleteMarker = null;
+  let followerMarker = null;
+  let routeLayer = null;
+
+  function showError(message) {
+    errorBox.textContent = message;
+    errorBox.style.display = "block";
+    successBox.style.display = "none";
   }
 
-  map.setView([lat,lng],15);
+  function clearError() {
+    errorBox.style.display = "none";
+  }
 
-}
+  function showSuccess(message) {
+    successBox.textContent = message;
+    successBox.style.display = "block";
+    errorBox.style.display = "none";
+  }
 
-function gpsError(err){
+  function generateSessionCode() {
+    const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let result = "";
 
-document.getElementById("status").innerText =
-"GPS ERROR " + err.code + " : " + err.message;
+    for (let index = 0; index < 6; index++) {
+      result += characters.charAt(
+        Math.floor(Math.random() * characters.length)
+      );
+    }
 
-console.log(err);
+    return result;
+  }
 
-}
+  function cleanSessionCode(value) {
+    return value
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .slice(0, 12);
+  }
 
-document
-.getElementById("gpxFile")
-.addEventListener(
-  "change",
-  function(event){
+  function createDotIcon(color, description) {
+    return L.divIcon({
+      className: "",
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      html:
+        `<div
+          title="${description}"
+          style="
+            width:28px;
+            height:28px;
+            border-radius:50%;
+            background:${color};
+            border:5px solid white;
+            box-shadow:0 3px 14px rgba(15,23,42,.5);
+          "
+        ></div>`
+    });
+  }
 
-    const file = event.target.files[0];
+  function calculateDistanceKm(first, second) {
+    if (!first || !second) {
+      return null;
+    }
 
-    if(!file)
+    const earthRadius = 6371;
+
+    const latitudeDifference =
+      (second.lat - first.lat) * Math.PI / 180;
+
+    const longitudeDifference =
+      (second.lng - first.lng) * Math.PI / 180;
+
+    const calculation =
+      Math.sin(latitudeDifference / 2) ** 2 +
+      Math.cos(first.lat * Math.PI / 180) *
+      Math.cos(second.lat * Math.PI / 180) *
+      Math.sin(longitudeDifference / 2) ** 2;
+
+    return (
+      2 *
+      earthRadius *
+      Math.asin(Math.sqrt(calculation))
+    );
+  }
+
+  function updateDistanceDisplay() {
+    const distance =
+      calculateDistanceKm(
+        athletePosition,
+        followerPosition
+      );
+
+    if (distance === null) {
+      distanceStatus.textContent =
+        "Waiting for both";
       return;
+    }
 
-    const reader = new FileReader();
+    if (distance < 1) {
+      distanceStatus.textContent =
+        `${Math.round(distance * 1000)} m`;
+    } else {
+      distanceStatus.textContent =
+        `${distance.toFixed(2)} km`;
+    }
+  }
 
-    reader.onload = function(){
+  function updateMarker(role, position) {
+    if (!position) {
+      return;
+    }
 
-      const parser =
-        new DOMParser();
+    const point = [position.lat, position.lng];
 
-      const xml =
-        parser.parseFromString(
-          reader.result,
-          "text/xml"
+    if (role === "athlete") {
+      athletePosition = position;
+
+      if (!athleteMarker) {
+        athleteMarker = L.marker(
+          point,
+          {
+            icon: createDotIcon(
+              "#ef4444",
+              "Athlete"
+            )
+          }
+        )
+          .addTo(map)
+          .bindPopup("Athlete");
+      } else {
+        athleteMarker.setLatLng(point);
+      }
+
+      athleteStatus.textContent =
+        position.updatedText || "Live";
+
+      athleteStatus.className =
+        "status-value live";
+    }
+
+    if (role === "follower") {
+      followerPosition = position;
+
+      if (!followerMarker) {
+        followerMarker = L.marker(
+          point,
+          {
+            icon: createDotIcon(
+              "#2563eb",
+              "Follower"
+            )
+          }
+        )
+          .addTo(map)
+          .bindPopup("Follower");
+      } else {
+        followerMarker.setLatLng(point);
+      }
+
+      followerStatus.textContent =
+        position.updatedText || "Live";
+
+      followerStatus.className =
+        "status-value live";
+    }
+
+    updateDistanceDisplay();
+  }
+
+  function findLatestParticipantByRole(
+    participants,
+    requestedRole
+  ) {
+    const matches = Object.values(
+      participants || {}
+    ).filter(
+      participant =>
+        participant &&
+        participant.role === requestedRole &&
+        Number.isFinite(participant.lat) &&
+        Number.isFinite(participant.lng)
+    );
+
+    matches.sort(
+      (first, second) =>
+        (second.timestamp || 0) -
+        (first.timestamp || 0)
+    );
+
+    return matches[0] || null;
+  }
+
+  function listenToSession() {
+    if (!currentSession) {
+      return;
+    }
+
+    const participantsReference = ref(
+      database,
+      `sessions/${currentSession}/participants`
+    );
+
+    if (participantListener) {
+      participantListener();
+    }
+
+    participantListener = onValue(
+      participantsReference,
+      snapshot => {
+        const participants =
+          snapshot.val() || {};
+
+        const athlete =
+          findLatestParticipantByRole(
+            participants,
+            "athlete"
+          );
+
+        const follower =
+          findLatestParticipantByRole(
+            participants,
+            "follower"
+          );
+
+        if (athlete) {
+          updateMarker("athlete", {
+            ...athlete,
+            updatedText: "Live"
+          });
+        } else {
+          athletePosition = null;
+          athleteStatus.textContent = "Waiting";
+          athleteStatus.className =
+            "status-value waiting";
+        }
+
+        if (follower) {
+          updateMarker("follower", {
+            ...follower,
+            updatedText: "Live"
+          });
+        } else {
+          followerPosition = null;
+          followerStatus.textContent = "Waiting";
+          followerStatus.className =
+            "status-value waiting";
+        }
+
+        updateDistanceDisplay();
+      },
+      error => {
+        showError(
+          `Session read failed: ${error.message}`
+        );
+      }
+    );
+  }
+
+  function joinSession() {
+    clearError();
+
+    if (!currentUser) {
+      showError(
+        "Firebase is still signing in. Try again."
+      );
+      return;
+    }
+
+    const cleaned =
+      cleanSessionCode(sessionElement.value);
+
+    if (cleaned.length < 4) {
+      showError(
+        "Enter a session code of at least 4 characters."
+      );
+      return;
+    }
+
+    currentSession = cleaned;
+    sessionElement.value = currentSession;
+
+    sessionStatus.textContent =
+      currentSession;
+
+    sessionStatus.className =
+      "status-value session-code live";
+
+    copyInviteButton.disabled = false;
+
+    const url = new URL(window.location.href);
+
+    url.searchParams.set(
+      "session",
+      currentSession
+    );
+
+    url.searchParams.set(
+      "role",
+      roleElement.value
+    );
+
+    window.history.replaceState(
+      {},
+      "",
+      url
+    );
+
+    listenToSession();
+
+    showSuccess(
+      `Joined session ${currentSession} as ${roleElement.value}.`
+    );
+  }
+
+  async function writeGpsPosition(position) {
+    if (!currentUser || !currentSession) {
+      return;
+    }
+
+    const participantReference = ref(
+      database,
+      `sessions/${currentSession}/participants/${currentUser.uid}`
+    );
+
+    const location = {
+      role: roleElement.value,
+      lat: position.coords.latitude,
+      lng: position.coords.longitude,
+      accuracy:
+        Math.round(position.coords.accuracy),
+      timestamp: serverTimestamp()
+    };
+
+    try {
+      await onDisconnect(
+        participantReference
+      ).remove();
+
+      await set(
+        participantReference,
+        location
+      );
+    } catch (error) {
+      showError(
+        `Firebase GPS write failed: ${error.message}`
+      );
+    }
+  }
+
+  function startGps() {
+    clearError();
+
+    if (!currentUser) {
+      showError(
+        "Firebase authentication is not ready."
+      );
+      return;
+    }
+
+    if (!currentSession) {
+      showError(
+        "Create or join a session before starting GPS."
+      );
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      showError(
+        "This browser does not support geolocation."
+      );
+      return;
+    }
+
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(
+        watchId
+      );
+    }
+
+    gpsStatus.textContent =
+      "Requesting permission";
+
+    startGpsButton.disabled = true;
+
+    watchId = navigator.geolocation.watchPosition(
+      position => {
+        const localPosition = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          accuracy:
+            Math.round(position.coords.accuracy),
+          timestamp: position.timestamp,
+          updatedText:
+            new Date(
+              position.timestamp
+            ).toLocaleTimeString()
+        };
+
+        gpsStatus.textContent = "Live";
+        gpsStatus.className =
+          "status-value live";
+
+        accuracyStatus.textContent =
+          `± ${localPosition.accuracy} m`;
+
+        startGpsButton.textContent =
+          "GPS is live";
+
+        startGpsButton.disabled = false;
+
+        updateMarker(
+          roleElement.value,
+          localPosition
         );
 
-      const pts =
-        xml.getElementsByTagName("trkpt");
+        writeGpsPosition(position);
+      },
 
-      const route = [];
+      error => {
+        const errors = {
+          1:
+            "Location permission was denied.",
+          2:
+            "The device could not determine its location.",
+          3:
+            "The GPS request timed out."
+        };
 
-      for(let i=0;i<pts.length;i++){
+        gpsStatus.textContent = "Error";
+        gpsStatus.className =
+          "status-value";
 
-        route.push([
-          parseFloat(
-            pts[i].getAttribute("lat")
-          ),
-          parseFloat(
-            pts[i].getAttribute("lon")
-          )
-        ]);
+        startGpsButton.disabled = false;
+
+        showError(
+          errors[error.code] ||
+          error.message
+        );
+      },
+
+      {
+        enableHighAccuracy: true,
+        maximumAge: 3000,
+        timeout: 15000
+      }
+    );
+  }
+
+  function showBothPositions() {
+    const positions = [];
+
+    if (athletePosition) {
+      positions.push([
+        athletePosition.lat,
+        athletePosition.lng
+      ]);
+    }
+
+    if (followerPosition) {
+      positions.push([
+        followerPosition.lat,
+        followerPosition.lng
+      ]);
+    }
+
+    if (positions.length === 0) {
+      showError(
+        "No live positions are available yet."
+      );
+      return;
+    }
+
+    if (positions.length === 1) {
+      map.setView(positions[0], 16);
+      return;
+    }
+
+    map.fitBounds(
+      L.latLngBounds(positions).pad(0.35),
+      {
+        maxZoom: 16
+      }
+    );
+  }
+
+  async function importGpx(event) {
+    const file = event.target.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    clearError();
+
+    try {
+      const text = await file.text();
+
+      const xml =
+        new DOMParser().parseFromString(
+          text,
+          "application/xml"
+        );
+
+      if (xml.querySelector("parsererror")) {
+        throw new Error(
+          "The selected file is not a valid GPX file."
+        );
       }
 
-      if(route.length < 2){
-        alert("No route found");
-        return;
+      const nodes = [
+        ...xml.querySelectorAll(
+          "trkpt, rtept"
+        )
+      ];
+
+      const points = nodes
+        .map(node => [
+          Number(node.getAttribute("lat")),
+          Number(node.getAttribute("lon"))
+        ])
+        .filter(
+          point =>
+            Number.isFinite(point[0]) &&
+            Number.isFinite(point[1])
+        );
+
+      if (points.length < 2) {
+        throw new Error(
+          "No usable GPX track or route was found."
+        );
       }
 
-      if(routeLayer){
+      if (routeLayer) {
         map.removeLayer(routeLayer);
       }
 
-      routeLayer =
-        L.polyline(
-          route,
-          {
-            color:"purple",
-            weight:5
-          }
-        ).addTo(map);
+      routeLayer = L.polyline(
+        points,
+        {
+          color: "#7c3aed",
+          weight: 5,
+          opacity: 0.9
+        }
+      ).addTo(map);
 
       map.fitBounds(
-        routeLayer.getBounds()
+        routeLayer.getBounds().pad(0.05)
       );
 
-    };
+      routeStatus.textContent =
+        file.name;
 
-    reader.readAsText(file);
+      showSuccess(
+        `GPX route loaded: ${file.name}`
+      );
+    } catch (error) {
+      showError(error.message);
+    }
 
-  });
+    event.target.value = "";
+  }
+
+  async function copyFollowerInvite() {
+    if (!currentSession) {
+      showError(
+        "Create or join a session first."
+      );
+      return;
+    }
+
+    const url = new URL(window.location.href);
+
+    url.searchParams.set(
+      "session",
+      currentSession
+    );
+
+    url.searchParams.set(
+      "role",
+      "follower"
+    );
+
+    try {
+      await navigator.clipboard.writeText(
+        url.toString()
+      );
+
+      showSuccess(
+        "Follower invitation link copied."
+      );
+    } catch (error) {
+      showError(
+        "The invitation link could not be copied."
+      );
+    }
+  }
+
+  createSessionButton.addEventListener(
+    "click",
+    () => {
+      sessionElement.value =
+        generateSessionCode();
+
+      roleElement.value = "athlete";
+
+      joinSession();
+    }
+  );
+
+  joinSessionButton.addEventListener(
+    "click",
+    joinSession
+  );
+
+  startGpsButton.addEventListener(
+    "click",
+    startGps
+  );
+
+  showBothButton.addEventListener(
+    "click",
+    showBothPositions
+  );
+
+  copyInviteButton.addEventListener(
+    "click",
+    copyFollowerInvite
+  );
+
+  gpxFileElement.addEventListener(
+    "change",
+    importGpx
+  );
+
+  sessionElement.addEventListener(
+    "input",
+    event => {
+      event.target.value =
+        cleanSessionCode(
+          event.target.value
+        );
+    }
+  );
+
+  const urlParameters =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const sharedSession =
+    cleanSessionCode(
+      urlParameters.get("session") || ""
+    );
+
+  const sharedRole =
+    urlParameters.get("role");
+
+  if (sharedSession) {
+    sessionElement.value =
+      sharedSession;
+  }
+
+  if (
+    sharedRole === "athlete" ||
+    sharedRole === "follower"
+  ) {
+    roleElement.value =
+      sharedRole;
+  }
+
+  onAuthStateChanged(
+    auth,
+    user => {
+      if (user) {
+        currentUser = user;
+
+        authStatus.textContent =
+          "Connected";
+
+        authStatus.className =
+          "status-value live";
+
+        console.log(
+          "✅ Firebase anonymous user:",
+          user.uid
+        );
+
+        if (sharedSession) {
+          joinSession();
+        }
+      }
+    }
+  );
+
+  signInAnonymously(auth)
+    .then(() => {
+      console.log(
+        "✅ Anonymous Firebase login successful"
+      );
+    })
+    .catch(error => {
+      authStatus.textContent =
+        "Login failed";
+
+      authStatus.className =
+        "status-value";
+
+      showError(
+        `Firebase login failed: ${error.message}`
+      );
+    });
 
 </script>
 
