@@ -366,9 +366,6 @@
         Start my GPS
       </button> 
 
-      <button id="stopGps" class="outline" disabled>
-        Stop GPS
-      </button>
 
       <label for="gpxFile" class="file-button">
         Import GPX route
@@ -912,57 +909,47 @@
   }
 
   function startGps() {
-    clearError();
 
-    if (!currentUser) {
-      showError(
-        "Firebase authentication is not ready."
-      );
-      return;
-    }
+  // GPS already running?
+  if (watchId !== null) {
 
-    if (!currentSession) {
-      showError(
-        "Create or join a session before starting GPS."
-      );
-      return;
-    }
+    stopGps();
 
-    if (!navigator.geolocation) {
-      showError(
-        "This browser does not support geolocation."
-      );
-      return;
-    }
+    return;
+  }
+
+  clearError();
+
+  if (!currentUser) {
+    ...
+  }
+
+  if (!currentSession) {
+    ...
+  }
+  function stopGps() {
 
     if (watchId !== null) {
+
       navigator.geolocation.clearWatch(
         watchId
       );
-    }
-    function stopGps() {
 
-      if (watchId !== null) {
+      watchId = null;
+  }
 
-        navigator.geolocation.clearWatch(
-          watchId
-        );
+  gpsStatus.textContent = "Stopped";
 
-        watchId = null;
-      }
+  accuracyStatus.textContent = "-";
 
-      gpsStatus.textContent = "Stopped";
+  startGpsButton.textContent =
+    "Start My GPS";
 
-      gpsStatus.className =
-        "status-value";
-
-      startGpsButton.disabled = false;
-
-      stopGpsButton.disabled = true;
-
-      startGpsButton.textContent =
-        "Start my GPS";
-    }
+  startGpsButton.classList.remove(
+    "athlete-button"
+  );
+}
+    
 
     gpsStatus.textContent =
       "Requesting permission";
