@@ -1118,6 +1118,24 @@
         );
       }
 
+      if (currentSession) {
+
+        await set(
+          ref(
+            database,
+            `sessions/${currentSession}/route`
+          ),
+          {
+            points: points
+          }
+        );
+
+        console.log(
+          "✅ Route stored in Firebase"
+        );
+
+      }
+
       if (routeLayer) {
         map.removeLayer(routeLayer);
       }
