@@ -664,10 +664,41 @@
       distanceStatus.textContent =
         `${Math.round(distance * 1000)} m`;
     } else {
-      distanceStatus.textContent =
-        `${distance.toFixed(2)} km`;
+  distanceStatus.textContent =
+    `${distance.toFixed(2)} km`;
+}
+
+if (
+  athletePosition &&
+  followerPosition
+) {
+
+  const positions = [
+
+    [
+      athletePosition.lat,
+      athletePosition.lng
+    ],
+
+    [
+      followerPosition.lat,
+      followerPosition.lng
+    ]
+
+  ];
+
+  map.fitBounds(
+    L.latLngBounds(
+      positions
+    ).pad(0.25),
+    {
+      maxZoom: 16
     }
-  }
+  );
+
+}
+
+}
 
   function updateMarker(role, position) {
     if (!position) {
