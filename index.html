@@ -940,11 +940,35 @@
         watchId
       );
     }
+    function stopGps() {
+
+      if (watchId !== null) {
+
+        navigator.geolocation.clearWatch(
+          watchId
+        );
+
+        watchId = null;
+      }
+
+      gpsStatus.textContent = "Stopped";
+
+      gpsStatus.className =
+        "status-value";
+
+      startGpsButton.disabled = false;
+
+      stopGpsButton.disabled = true;
+
+      startGpsButton.textContent =
+        "Start my GPS";
+    }
 
     gpsStatus.textContent =
       "Requesting permission";
 
     startGpsButton.disabled = true;
+    stopGpsButton.disabled = false;
 
     watchId = navigator.geolocation.watchPosition(
       position => {
@@ -1181,6 +1205,11 @@
     startGps
   );
 
+  stopGpsButton.addEventListener(
+  "click",
+  stopGps
+  );
+  
   showBothButton.addEventListener(
     "click",
     showBothPositions
