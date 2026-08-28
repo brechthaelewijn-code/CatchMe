@@ -1097,6 +1097,11 @@ function startGps() {
   
 function updateInterface() {
 
+  console.log(
+    "ROLE:",
+    roleElement.value
+  );
+
   if (roleElement.value === "athlete") {
 
     joinSessionButton.style.display =
