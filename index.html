@@ -1094,7 +1094,22 @@ function startGps() {
       }
     );
   }
+  
+function updateInterface() {
 
+  if (roleElement.value === "athlete") {
+
+    joinSessionButton.style.display =
+      "none";
+
+  } else {
+
+    joinSessionButton.style.display =
+      "block";
+
+  }
+
+}
   async function importGpx(event) {
     const file = event.target.files[0];
 
@@ -1367,6 +1382,11 @@ startGpsButton.addEventListener(
     importGpx
   );
 
+  roleElement.addEventListener(
+  "change",
+  updateInterface
+);
+  
   sessionElement.addEventListener(
     "input",
     event => {
@@ -1396,12 +1416,15 @@ startGpsButton.addEventListener(
   }
 
   if (
-    sharedRole === "athlete" ||
-    sharedRole === "follower"
-  ) {
-    roleElement.value =
-      sharedRole;
-  }
+  sharedRole === "athlete" ||
+  sharedRole === "follower"
+) {
+  roleElement.value =
+    sharedRole;
+}
+
+updateInterface();
+``
 
   onAuthStateChanged(
     auth,
