@@ -863,7 +863,14 @@
     );
 
     listenToSession();
+if (
+  roleElement.value === "athlete"
+) {
 
+  createSessionButton.textContent =
+    "End Session";
+
+}
     showSuccess(
       `Joined session ${currentSession} as ${roleElement.value}.`
     );
@@ -1164,7 +1171,102 @@ function startGps() {
 
     event.target.value = "";
   }
+async function endSession() {
 
+  if (!currentSession) {
+
+    showError(
+      "No active session."
+    );
+
+    return;
+
+  }
+
+  try {
+
+    await set(
+      ref(
+        database,
+        `sessions/${currentSession}`
+      ),
+      null
+    );
+
+    currentSession = "";
+
+    createSessionButton.textContent =
+      "Create Session";
+
+    copyInviteButton.disabled =
+      true;
+
+    sessionElement.value = "";
+
+    sessionStatus.textContent =
+      "None";
+
+    sessionStatus.className =
+      "status-value";
+
+    routeStatus.textContent =
+      "No route loaded";
+
+    athleteStatus.textContent =
+      "Waiting";
+
+    followerStatus.textContent =
+      "Waiting";
+
+    distanceStatus.textContent =
+      "Waiting for both";
+
+    if (routeLayer) {
+
+      map.removeLayer(routeLayer);
+
+      routeLayer = null;
+
+    }
+
+    if (athleteMarker) {
+
+      map.removeLayer(athleteMarker);
+
+      athleteMarker = null;
+
+    }
+
+    if (followerMarker) {
+
+      map.removeLayer(followerMarker);
+
+      followerMarker = null;
+
+    }
+
+    athletePosition = null;
+    followerPosition = null;
+
+    map.setView(
+      DEFAULT_CENTER,
+      10
+    );
+
+    showSuccess(
+      "Session ended."
+    );
+
+  } catch (error) {
+
+    showError(
+      `Could not end session: ${error.message}`
+    );
+
+  }
+
+}
+  
   async function copyFollowerInvite() {
     if (!currentSession) {
       showError(
@@ -1200,17 +1302,31 @@ function startGps() {
     }
   }
 
-  createSessionButton.addEventListener(
-    "click",
-    () => {
-      sessionElement.value =
-        generateSessionCode();
+createSessionButton.addEventListener(
+  "click",
+  () => {
 
-      roleElement.value = "athlete";
+    if (
+      currentSession &&
+      roleElement.value === "athlete"
+    ) {
 
-      joinSession();
+      endSession();
+
+      return;
+
     }
-  );
+
+    sessionElement.value =
+      generateSessionCode();
+
+    roleElement.value =
+      "athlete";
+
+    joinSession();
+
+  }
+);
 
   joinSessionButton.addEventListener(
     "click",
