@@ -514,7 +514,7 @@
   const showBothButton =
     document.getElementById("showBoth");
 
-  const startGpsButton =
+  const GpsButton =
     document.getElementById("startGps");
 
   const stopGpsButton =
@@ -992,9 +992,36 @@ if (
     }
   }
 
+  async function removeMyLocationFromFirebase() {
+
+  if (
+    !currentUser ||
+    !currentSession
+  ) {
+    return;
+  }
+
+  await set(
+    ref(
+      database,
+      `sessions/${currentSession}/participants/${currentUser.uid}`
+    ),
+    null
+  );
+
+  console.log(
+    "✅ Participant removed"
+  );
+}
   function startGps() {
     clearError();
 
+    if (watchId !== null) {
+
+  stopGps();
+
+  return;
+}
     if (!currentUser) {
       showError(
         "Firebase authentication is not ready."
@@ -1041,8 +1068,12 @@ if (
 
       stopGpsButton.disabled = true;
 
-      startGpsButton.textContent =
-        "Start my GPS";
+      gpsButton.textContent =
+  "Stop my GPS";
+
+gpsButton.classList.add(
+  "athlete-button"
+);
     }
 
     gpsStatus.textContent =
@@ -1115,6 +1146,33 @@ if (
     );
   }
 
+  function stopGps() {
+
+  if (watchId !== null) {
+
+    navigator.geolocation.clearWatch(
+      watchId
+    );
+
+    watchId = null;
+  }
+
+  gpsStatus.textContent =
+    "Stopped";
+
+  accuracyStatus.textContent =
+    "-";
+
+  gpsButton.textContent =
+    "Start my GPS";
+
+  gpsButton.classList.remove(
+    "athlete-button"
+  );
+
+  removeMyLocationFromFirebase();
+}
+  
   function showBothPositions() {
     const positions = [];
 
