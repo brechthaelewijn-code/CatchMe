@@ -347,13 +347,10 @@
         Copy follower link
       </button>
 
-      <button id="showBoth" class="outline">
-        Show both
-      </button>
     </div>
 
     <p class="small">
-      The athlete creates or joins a session. The follower opens the
+      The athlete creates and joins a session. The follower opens the
       invitation link or enters the same session code.
     </p>
   </div>
@@ -506,9 +503,6 @@
 
   const copyInviteButton =
     document.getElementById("copyInvite");
-
-  const showBothButton =
-    document.getElementById("showBoth");
 
   const startGpsButton =
     document.getElementById("startGps");
@@ -1097,20 +1091,27 @@ function startGps() {
   
 function updateInterface() {
 
-  console.log(
-    "ROLE:",
-    roleElement.value
-  );
-
   if (roleElement.value === "athlete") {
 
     joinSessionButton.style.display =
       "none";
 
+    createSessionButton.style.display =
+      "block";
+
+    copyInviteButton.style.display =
+      "block";
+
   } else {
 
     joinSessionButton.style.display =
       "block";
+
+    createSessionButton.style.display =
+      "none";
+
+    copyInviteButton.style.display =
+      "none";
 
   }
 
@@ -1372,11 +1373,6 @@ startGpsButton.addEventListener(
 ``
 
   
-  showBothButton.addEventListener(
-    "click",
-    showBothPositions
-  );
-
   copyInviteButton.addEventListener(
     "click",
     copyFollowerInvite
