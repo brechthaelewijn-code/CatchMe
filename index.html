@@ -514,7 +514,7 @@
   const showBothButton =
     document.getElementById("showBoth");
 
-  const GpsButton =
+  const startGpsButton =
     document.getElementById("startGps");
 
   const stopGpsButton =
@@ -664,41 +664,10 @@
       distanceStatus.textContent =
         `${Math.round(distance * 1000)} m`;
     } else {
-  distanceStatus.textContent =
-    `${distance.toFixed(2)} km`;
-}
-
-if (
-  athletePosition &&
-  followerPosition
-) {
-
-  const positions = [
-
-    [
-      athletePosition.lat,
-      athletePosition.lng
-    ],
-
-    [
-      followerPosition.lat,
-      followerPosition.lng
-    ]
-
-  ];
-
-  map.fitBounds(
-    L.latLngBounds(
-      positions
-    ).pad(0.25),
-    {
-      maxZoom: 16
+      distanceStatus.textContent =
+        `${distance.toFixed(2)} km`;
     }
-  );
-
-}
-
-}
+  }
 
   function updateMarker(role, position) {
     if (!position) {
@@ -851,55 +820,6 @@ if (
     );
   }
 
-  function listenToRoute() {
-
-  if (!currentSession) {
-    return;
-  }
-
-  const routeRef = ref(
-    database,
-    `sessions/${currentSession}/route`
-  );
-
-  onValue(
-    routeRef,
-    (snapshot) => {
-
-      const route = snapshot.val();
-
-      if (!route || !route.points) {
-        return;
-      }
-
-      if (routeLayer) {
-
-        map.removeLayer(
-          routeLayer
-        );
-
-      }
-
-      routeLayer = L.polyline(
-        route.points,
-        {
-          color: "#7c3aed",
-          weight: 5,
-          opacity: 0.9
-        }
-      ).addTo(map);
-
-      routeStatus.textContent =
-        "Shared route";
-
-      console.log(
-        "✅ Route downloaded from Firebase"
-      );
-
-    }
-  );
-
-}
   function joinSession() {
     clearError();
 
@@ -950,7 +870,6 @@ if (
     );
 
     listenToSession();
-    listenToRoute();
 
     showSuccess(
       `Joined session ${currentSession} as ${roleElement.value}.`
@@ -992,106 +911,80 @@ if (
     }
   }
 
-  async function removeMyLocationFromFirebase() {
+  function startGps() {
+    clearError();
 
-  if (
-    !currentUser ||
-    !currentSession
-  ) {
-    return;
-  }
+    if (!currentUser) {
+      showError(
+        "Firebase authentication is not ready."
+      );
+      return;
+    }
 
-  await set(
-    ref(
-      database,
-      `sessions/${currentSession}/participants/${currentUser.uid}`
-    ),
-    null
-  );
+    if (!currentSession) {
+      showError(
+        "Create or join a session before starting GPS."
+      );
+      return;
+    }
 
-  console.log(
-    "✅ Participant removed"
-  );
-}
- function startGps() {
+    if (!navigator.geolocation) {
+      showError(
+        "This browser does not support geolocation."
+      );
+      return;
+    }
 
-  clearError();
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(
+        watchId
+      );
+    }
+    function stopGps() {
 
-  if (!currentUser) {
+      if (watchId !== null) {
 
-    showError(
-      "Firebase authentication is not ready."
-    );
+        navigator.geolocation.clearWatch(
+          watchId
+        );
 
-    return;
-  }
+        watchId = null;
+      }
 
-  if (!currentSession) {
+      gpsStatus.textContent = "Stopped";
 
-    showError(
-      "Create or join a session before starting GPS."
-    );
+      gpsStatus.className =
+        "status-value";
 
-    return;
-  }
+      startGpsButton.disabled = false;
 
-  if (!navigator.geolocation) {
+      stopGpsButton.disabled = true;
 
-    showError(
-      "This browser does not support geolocation."
-    );
+      startGpsButton.textContent =
+        "Start my GPS";
+    }
 
-    return;
-  }
+    gpsStatus.textContent =
+      "Requesting permission";
 
-  if (watchId !== null) {
+    startGpsButton.disabled = true;
+    stopGpsButton.disabled = false;
 
-    navigator.geolocation.clearWatch(
-      watchId
-    );
-
-  }
-
-  gpsStatus.textContent =
-    "Requesting permission";
-
-  startGpsButton.disabled =
-    true;
-
-  stopGpsButton.disabled =
-    false;
-
-  watchId =
-    navigator.geolocation.watchPosition(
-
+    watchId = navigator.geolocation.watchPosition(
       position => {
-
         const localPosition = {
-
-          lat:
-            position.coords.latitude,
-
-          lng:
-            position.coords.longitude,
-
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
           accuracy:
-            Math.round(
-              position.coords.accuracy
-            ),
-
-          timestamp:
-            position.timestamp,
-
+            Math.round(position.coords.accuracy),
+          timestamp: position.timestamp,
           updatedText:
             new Date(
               position.timestamp
             ).toLocaleTimeString()
-
         };
 
-        gpsStatus.textContent =
-          "Live";
-
+        gpsStatus.textContent = "Live";
         gpsStatus.className =
           "status-value live";
 
@@ -1099,121 +992,48 @@ if (
           `± ${localPosition.accuracy} m`;
 
         startGpsButton.textContent =
-          "GPS Running";
+          "GPS is live";
 
-        startGpsButton.disabled =
-          true;
+        startGpsButton.disabled = false;
 
         updateMarker(
           roleElement.value,
           localPosition
         );
 
-        writeGpsPosition(
-          position
-        );
-
+        writeGpsPosition(position);
       },
 
       error => {
-
         const errors = {
-
           1:
             "Location permission was denied.",
-
           2:
             "The device could not determine its location.",
-
           3:
             "The GPS request timed out."
-
         };
 
-        gpsStatus.textContent =
-          "Error";
-
+        gpsStatus.textContent = "Error";
         gpsStatus.className =
           "status-value";
 
-        startGpsButton.disabled =
-          false;
-
-        stopGpsButton.disabled =
-          true;
+        startGpsButton.disabled = false;
 
         showError(
           errors[error.code] ||
           error.message
         );
-
       },
 
       {
-        enableHighAccuracy:
-          true,
-
-        maximumAge:
-          3000,
-
-        timeout:
-          15000
+        enableHighAccuracy: true,
+        maximumAge: 3000,
+        timeout: 15000
       }
-
     );
-
-}
-async function stopGps() {
-
-  if (watchId !== null) {
-
-    navigator.geolocation.clearWatch(
-      watchId
-    );
-
-    watchId = null;
-
   }
 
-  gpsStatus.textContent =
-    "Stopped";
-
-  gpsStatus.className =
-    "status-value";
-
-  accuracyStatus.textContent =
-    "-";
-
-  startGpsButton.textContent =
-    "Start my GPS";
-
-  startGpsButton.disabled =
-    false;
-
-  stopGpsButton.disabled =
-    true;
-
-  if (
-    currentUser &&
-    currentSession
-  ) {
-
-    await set(
-      ref(
-        database,
-        `sessions/${currentSession}/participants/${currentUser.uid}`
-      ),
-      null
-    );
-
-    console.log(
-      "✅ Participant removed"
-    );
-
-  }
-
-}
-  
   function showBothPositions() {
     const positions = [];
 
@@ -1296,24 +1116,6 @@ async function stopGps() {
         throw new Error(
           "No usable GPX track or route was found."
         );
-      }
-
-      if (currentSession) {
-
-        await set(
-          ref(
-            database,
-            `sessions/${currentSession}/route`
-          ),
-          {
-            points: points
-          }
-        );
-
-        console.log(
-          "✅ Route stored in Firebase"
-        );
-
       }
 
       if (routeLayer) {
@@ -1458,9 +1260,8 @@ async function stopGps() {
     roleElement.value =
       sharedRole;
   }
-console.log("AUTH BLOCK REACHED");
-  
- onAuthStateChanged(
+
+  onAuthStateChanged(
     auth,
     user => {
       if (user) {
@@ -1484,8 +1285,6 @@ console.log("AUTH BLOCK REACHED");
     }
   );
 
-  console.log("STARTING FIREBASE LOGIN");
-  
   signInAnonymously(auth)
     .then(() => {
       console.log(
