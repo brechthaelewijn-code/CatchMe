@@ -513,9 +513,6 @@
   const startGpsButton =
     document.getElementById("startGps");
 
-  const stopGpsButton =
-  document.getElementById("stopGps");
-
   const gpxFileElement =
     document.getElementById("gpxFile");
 
@@ -909,169 +906,150 @@
 async function stopGps() {
 
   if (watchId !== null) {
-
-    navigator.geolocation.clearWatch(
-      watchId
-    );
-
+    navigator.geolocation.clearWatch(watchId);
     watchId = null;
   }
 
   gpsStatus.textContent = "Stopped";
-
-  gpsStatus.className =
-    "status-value";
-
+  gpsStatus.className = "status-value";
   accuracyStatus.textContent = "-";
 
-  startGpsButton.textContent =
-    "Start my GPS";
-
+  startGpsButton.textContent = "Start my GPS";
+  startGpsButton.classList.remove("athlete-button");
+  startGpsButton.classList.add("primary");
   startGpsButton.disabled = false;
 
-  if (
-    currentUser &&
-    currentSession
-  ) {
+  if (currentUser && currentSession) {
 
-    await set(
-      ref(
-        database,
-        `sessions/${currentSession}/participants/${currentUser.uid}`
-      ),
-      null
-    );
+    try {
 
-    console.log(
-      "✅ Participant removed"
-    );
+      await set(
+        ref(
+          database,
+          `sessions/${currentSession}/participants/${currentUser.uid}`
+        ),
+        null
+      );
 
+      console.log("Participant removed from Firebase");
+
+    } catch (error) {
+
+      showError(
+        `Could not remove position: ${error.message}`
+      );
+
+    }
   }
-
 }
 
-  function startGps() {
-    clearError();
 
-    if (!currentUser) {
-      showError(
-        "Firebase authentication is not ready."
-      );
-      return;
-    }
+function startGps() {
 
-    if (!currentSession) {
-      showError(
-        "Create or join a session before starting GPS."
-      );
-      return;
-    }
+  clearError();
 
-    if (!navigator.geolocation) {
-      showError(
-        "This browser does not support geolocation."
-      );
-      return;
-    }
+  if (!currentUser) {
+    showError(
+      "Firebase authentication is not ready."
+    );
+    return;
+  }
 
-    if (watchId !== null) {
-      navigator.geolocation.clearWatch(
-        watchId
+  if (!currentSession) {
+    showError(
+      "Create or join a session before starting GPS."
+    );
+    return;
+  }
+
+  if (!navigator.geolocation) {
+    showError(
+      "This browser does not support geolocation."
+    );
+    return;
+  }
+
+  if (watchId !== null) {
+    stopGps();
+    return;
+  }
+
+  gpsStatus.textContent = "Requesting permission";
+  gpsStatus.className = "status-value waiting";
+  startGpsButton.disabled = true;
+
+  watchId = navigator.geolocation.watchPosition(
+
+    position => {
+
+      const localPosition = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+        accuracy: Math.round(
+          position.coords.accuracy
+        ),
+        timestamp: position.timestamp,
+        updatedText: new Date(
+          position.timestamp
+        ).toLocaleTimeString()
+      };
+
+      gpsStatus.textContent = "Live";
+      gpsStatus.className = "status-value live";
+
+      accuracyStatus.textContent =
+        `± ${localPosition.accuracy} m`;
+
+      startGpsButton.textContent = "Stop my GPS";
+      startGpsButton.classList.remove("primary");
+      startGpsButton.classList.add("athlete-button");
+      startGpsButton.disabled = false;
+
+      updateMarker(
+        roleElement.value,
+        localPosition
       );
-    }
-    function stopGps() {
+
+      writeGpsPosition(position);
+
+    },
+
+    error => {
+
+      const errors = {
+        1: "Location permission was denied.",
+        2: "The device could not determine its location.",
+        3: "The GPS request timed out."
+      };
 
       if (watchId !== null) {
-
-        navigator.geolocation.clearWatch(
-          watchId
-        );
-
+        navigator.geolocation.clearWatch(watchId);
         watchId = null;
       }
 
-      gpsStatus.textContent = "Stopped";
+      gpsStatus.textContent = "Error";
+      gpsStatus.className = "status-value";
+      accuracyStatus.textContent = "-";
 
-      gpsStatus.className =
-        "status-value";
-
+      startGpsButton.textContent = "Start my GPS";
+      startGpsButton.classList.remove("athlete-button");
+      startGpsButton.classList.add("primary");
       startGpsButton.disabled = false;
 
-      stopGpsButton.disabled = true;
+      showError(
+        errors[error.code] || error.message
+      );
 
-      startGpsButton.textContent =
-        "Start my GPS";
+    },
+
+    {
+      enableHighAccuracy: true,
+      maximumAge: 3000,
+      timeout: 15000
     }
 
-    gpsStatus.textContent =
-      "Requesting permission";
-
-    startGpsButton.disabled = true;
-    stopGpsButton.disabled = false;
-
-    watchId = navigator.geolocation.watchPosition(
-      position => {
-        const localPosition = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-          accuracy:
-            Math.round(position.coords.accuracy),
-          timestamp: position.timestamp,
-          updatedText:
-            new Date(
-              position.timestamp
-            ).toLocaleTimeString()
-        };
-
-        gpsStatus.textContent = "Live";
-        gpsStatus.className =
-          "status-value live";
-
-        accuracyStatus.textContent =
-          `± ${localPosition.accuracy} m`;
-
-        startGpsButton.textContent =
-          "Stop my GPS";
-
-        startGpsButton.disabled = false;
-
-        updateMarker(
-          roleElement.value,
-          localPosition
-        );
-
-        writeGpsPosition(position);
-      },
-
-      error => {
-        const errors = {
-          1:
-            "Location permission was denied.",
-          2:
-            "The device could not determine its location.",
-          3:
-            "The GPS request timed out."
-        };
-
-        gpsStatus.textContent = "Error";
-        gpsStatus.className =
-          "status-value";
-
-        startGpsButton.disabled = false;
-
-        showError(
-          errors[error.code] ||
-          error.message
-        );
-      },
-
-      {
-        enableHighAccuracy: true,
-        maximumAge: 3000,
-        timeout: 15000
-      }
-    );
-  }
+  );
+}
 
   function showBothPositions() {
     const positions = [];
