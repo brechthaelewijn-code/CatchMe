@@ -510,6 +510,11 @@
   const gpxFileElement =
     document.getElementById("gpxFile");
 
+  const gpxLabel =
+  document.querySelector(
+    'label[for="gpxFile"]'
+  );
+
   const authStatus =
     document.getElementById("authStatus");
 
@@ -1102,6 +1107,9 @@ function updateInterface() {
     copyInviteButton.style.display =
       "block";
 
+    gpxLabel.style.display =
+      "block";
+
   } else {
 
     joinSessionButton.style.display =
@@ -1111,6 +1119,9 @@ function updateInterface() {
       "none";
 
     copyInviteButton.style.display =
+      "none";
+
+    gpxLabel.style.display =
       "none";
 
   }
