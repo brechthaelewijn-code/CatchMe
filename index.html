@@ -366,10 +366,6 @@
         Start my GPS
       </button> 
 
-      <button id="stopGps" class="outline" disabled>
-        Stop GPS
-      </button>
-
       <label for="gpxFile" class="file-button">
         Import GPX route
       </label>
@@ -910,6 +906,49 @@
       );
     }
   }
+async function stopGps() {
+
+  if (watchId !== null) {
+
+    navigator.geolocation.clearWatch(
+      watchId
+    );
+
+    watchId = null;
+  }
+
+  gpsStatus.textContent = "Stopped";
+
+  gpsStatus.className =
+    "status-value";
+
+  accuracyStatus.textContent = "-";
+
+  startGpsButton.textContent =
+    "Start my GPS";
+
+  startGpsButton.disabled = false;
+
+  if (
+    currentUser &&
+    currentSession
+  ) {
+
+    await set(
+      ref(
+        database,
+        `sessions/${currentSession}/participants/${currentUser.uid}`
+      ),
+      null
+    );
+
+    console.log(
+      "✅ Participant removed"
+    );
+
+  }
+
+}
 
   function startGps() {
     clearError();
@@ -992,7 +1031,7 @@
           `± ${localPosition.accuracy} m`;
 
         startGpsButton.textContent =
-          "GPS is live";
+          "Stop my GPS";
 
         startGpsButton.disabled = false;
 
@@ -1200,15 +1239,24 @@
     joinSession
   );
 
-  startGpsButton.addEventListener(
-    "click",
-    startGps
-  );
-
-  stopGpsButton.addEventListener(
+startGpsButton.addEventListener(
   "click",
-  stopGps
-  );
+  () => {
+
+    if (watchId === null) {
+
+      startGps();
+
+    } else {
+
+      stopGps();
+
+    }
+
+  }
+);
+``
+
   
   showBothButton.addEventListener(
     "click",
