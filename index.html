@@ -1458,8 +1458,9 @@ async function stopGps() {
     roleElement.value =
       sharedRole;
   }
-
-  onAuthStateChanged(
+console.log("AUTH BLOCK REACHED");
+  
+ onAuthStateChanged(
     auth,
     user => {
       if (user) {
@@ -1483,6 +1484,8 @@ async function stopGps() {
     }
   );
 
+  console.log("STARTING FIREBASE LOGIN");
+  
   signInAnonymously(auth)
     .then(() => {
       console.log(
