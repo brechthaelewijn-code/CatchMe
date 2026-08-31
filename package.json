@@ -1,0 +1,27 @@
+{
+  "name": "catchme",
+  "version": "1.0.0",
+  "description": "",
+  "main": "sw.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brechthaelewijn-code/CatchMe.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/brechthaelewijn-code/CatchMe/issues"
+  },
+  "homepage": "https://github.com/brechthaelewijn-code/CatchMe#readme",
+  "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capgo/background-geolocation": "^8.4.3"
+  }
+}
