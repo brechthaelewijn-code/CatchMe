@@ -556,6 +556,7 @@
   let athleteMarker = null;
   let followerMarker = null;
   let routeLayer = null;
+  let gpsCentered = false;
 
   function showError(message) {
     errorBox.textContent = message;
@@ -959,6 +960,10 @@ async function stopGps() {
   if (watchId !== null) {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
+  
+    gpsCentered = false;
+
+    
   }
 
   gpsStatus.textContent = "Stopped";
@@ -1060,7 +1065,19 @@ function startGps() {
         roleElement.value,
         localPosition
       );
+if (!gpsCentered) {
 
+  map.setView(
+    [
+      localPosition.lat,
+      localPosition.lng
+    ],
+    16
+  );
+
+  gpsCentered = true;
+
+}
       writeGpsPosition(position);
 
     },
