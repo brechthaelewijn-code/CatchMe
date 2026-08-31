@@ -812,6 +812,50 @@
     );
   }
 
+  function listenToRoute() {
+
+  if (!currentSession) {
+    return;
+  }
+
+  const routeRef = ref(
+    database,
+    `sessions/${currentSession}/route`
+  );
+
+  onValue(
+    routeRef,
+    (snapshot) => {
+
+      const route = snapshot.val();
+
+      if (!route || !route.points) {
+        return;
+      }
+
+      if (routeLayer) {
+
+        map.removeLayer(routeLayer);
+
+      }
+
+      routeLayer = L.polyline(
+        route.points,
+        {
+          color: "#7c3aed",
+          weight: 5,
+          opacity: 0.9
+        }
+      ).addTo(map);
+
+      routeStatus.textContent =
+        "Shared route";
+
+    }
+  );
+
+}
+  
   function joinSession() {
     clearError();
 
@@ -862,6 +906,7 @@
     );
 
     listenToSession();
+    listenToRoute();
 if (
   roleElement.value === "athlete"
 ) {
@@ -1173,6 +1218,19 @@ function updateInterface() {
           "No usable GPX track or route was found."
         );
       }
+      if (currentSession) {
+
+  await set(
+    ref(
+      database,
+      `sessions/${currentSession}/route`
+    ),
+    {
+      points: points
+    }
+  );
+
+}
 
       if (routeLayer) {
         map.removeLayer(routeLayer);
