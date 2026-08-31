@@ -1537,7 +1537,22 @@ updateInterface();
       }
     }
   );
+if (
+  "serviceWorker" in navigator
+) {
 
+  navigator.serviceWorker
+    .register("./sw.js")
+    .then(() => {
+
+      console.log(
+        "Service Worker registered"
+      );
+
+    });
+
+}
+  
   signInAnonymously(auth)
     .then(() => {
       console.log(
